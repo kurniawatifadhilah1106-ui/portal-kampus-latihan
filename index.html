@@ -1,0 +1,595 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Portal Akademik — Universitas Cendekia Nusantara (Latihan)</title>
+<style>
+  :root {
+    --navy: #16223f;
+    --navy-light: #223157;
+    --gold: #c9a227;
+    --gold-dark: #a1821c;
+    --cream: #f6f4ee;
+    --ink: #1f2430;
+    --slate: #5b6475;
+    --line: #dcd6c6;
+    --ok: #3b7a57;
+    --warn: #b34a3c;
+  }
+  * { box-sizing: border-box; }
+  body {
+    margin: 0;
+    font-family: -apple-system, "Segoe UI", system-ui, sans-serif;
+    background: var(--cream);
+    color: var(--ink);
+  }
+  h1, h2, h3 { font-family: Georgia, "Times New Roman", serif; margin: 0 0 8px 0; }
+  .dummy-banner {
+    background: #fef3c7; border-bottom: 2px solid var(--gold-dark);
+    text-align: center; font-weight: 700; font-size: 0.82rem;
+    padding: 7px 10px; letter-spacing: 0.4px;
+  }
+
+  /* --- Login screen --- */
+  #loginScreen {
+    min-height: 100vh; display: flex; align-items: center; justify-content: center;
+    background: linear-gradient(135deg, var(--navy) 0%, var(--navy-light) 100%);
+    padding: 24px;
+  }
+  .login-card {
+    background: var(--cream); border-radius: 4px; padding: 36px 32px;
+    max-width: 380px; width: 100%; box-shadow: 0 20px 50px rgba(0,0,0,0.3);
+  }
+  .login-card .crest {
+    width: 52px; height: 52px; border-radius: 50%; background: var(--gold);
+    display: flex; align-items: center; justify-content: center;
+    color: var(--navy); font-family: Georgia, serif; font-weight: 700; font-size: 1.3rem;
+    margin: 0 auto 14px auto;
+  }
+  .login-card h1 { text-align: center; font-size: 1.2rem; color: var(--navy); }
+  .login-card .sub { text-align: center; color: var(--slate); font-size: 0.85rem; margin-bottom: 22px; }
+  .field { margin-bottom: 14px; }
+  .field label { display: block; font-size: 0.8rem; font-weight: 600; margin-bottom: 4px; color: var(--navy); }
+  .field select, .field input {
+    width: 100%; padding: 9px 11px; border: 1px solid var(--line); border-radius: 3px;
+    font-size: 0.9rem; font-family: inherit; background: white;
+  }
+  .btn {
+    display: inline-block; border: none; border-radius: 3px; padding: 10px 18px;
+    font-weight: 600; font-size: 0.88rem; cursor: pointer; font-family: inherit;
+  }
+  .btn-primary { background: var(--navy); color: white; width: 100%; }
+  .btn-primary:hover { background: var(--navy-light); }
+  .btn-gold { background: var(--gold); color: var(--navy); }
+  .btn-gold:hover { background: var(--gold-dark); color: white; }
+  .btn-outline { background: transparent; border: 1px solid var(--line); color: var(--navy); }
+  .hint { font-size: 0.76rem; color: var(--slate); margin-top: 14px; text-align: center; line-height: 1.5; }
+  .error-msg { color: var(--warn); font-size: 0.82rem; margin-top: 8px; display: none; }
+
+  /* --- App shell --- */
+  #appScreen { display: none; min-height: 100vh; }
+  .shell { display: flex; min-height: calc(100vh - 34px); }
+  .sidebar {
+    width: 230px; background: var(--navy); color: white; padding: 22px 0; flex-shrink: 0;
+  }
+  .sidebar .brand { padding: 0 20px 20px 20px; border-bottom: 1px solid rgba(255,255,255,0.12); margin-bottom: 14px; }
+  .sidebar .brand .crest-sm {
+    width: 34px; height: 34px; border-radius: 50%; background: var(--gold); color: var(--navy);
+    display: flex; align-items: center; justify-content: center; font-family: Georgia, serif; font-weight: 700;
+    margin-bottom: 8px;
+  }
+  .sidebar .brand h2 { font-size: 0.95rem; color: white; }
+  .sidebar .brand .role-badge { font-size: 0.72rem; color: var(--gold); text-transform: capitalize; }
+  .sidebar nav a {
+    display: block; padding: 10px 20px; color: rgba(255,255,255,0.78); text-decoration: none;
+    font-size: 0.88rem; border-left: 3px solid transparent; cursor: pointer;
+  }
+  .sidebar nav a:hover { background: rgba(255,255,255,0.06); color: white; }
+  .sidebar nav a.active { border-left-color: var(--gold); background: rgba(255,255,255,0.08); color: white; font-weight: 600; }
+  .sidebar .logout { padding: 14px 20px; margin-top: 10px; }
+  .sidebar .logout button { width: 100%; }
+
+  .main { flex: 1; padding: 30px 36px; max-width: 920px; }
+  .page-head { margin-bottom: 22px; }
+  .page-head p { color: var(--slate); font-size: 0.9rem; margin: 4px 0 0 0; }
+
+  table { width: 100%; border-collapse: collapse; background: white; border: 1px solid var(--line); }
+  th, td { text-align: left; padding: 10px 12px; font-size: 0.87rem; border-bottom: 1px solid var(--line); }
+  th { background: #efebe0; color: var(--navy); font-weight: 700; font-size: 0.78rem; text-transform: uppercase; letter-spacing: 0.4px; }
+  tr:last-child td { border-bottom: none; }
+
+  .panel { background: white; border: 1px solid var(--line); padding: 20px; margin-bottom: 20px; }
+  .panel h3 { font-size: 1rem; color: var(--navy); margin-bottom: 14px; }
+  .grid-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; }
+  .form-row { margin-bottom: 12px; }
+  .form-row label { display: block; font-size: 0.8rem; font-weight: 600; margin-bottom: 4px; color: var(--navy); }
+  .form-row select, .form-row input, .form-row textarea {
+    width: 100%; padding: 8px 10px; border: 1px solid var(--line); border-radius: 3px; font-family: inherit; font-size: 0.87rem;
+  }
+  .form-row textarea { min-height: 70px; resize: vertical; }
+
+  .nilai-badge { display: inline-block; padding: 2px 10px; border-radius: 3px; font-weight: 700; font-size: 0.82rem; }
+  .nilai-badge.ada { background: #e3efe8; color: var(--ok); }
+  .nilai-badge.kosong { background: #f1ede1; color: var(--slate); }
+
+  .post { border-bottom: 1px solid var(--line); padding: 12px 0; }
+  .post:last-child { border-bottom: none; }
+  .post .meta { font-size: 0.76rem; color: var(--slate); margin-bottom: 3px; }
+  .post .meta b { color: var(--navy); }
+  .post .body { font-size: 0.88rem; line-height: 1.5; }
+
+  .empty-state { text-align: center; padding: 30px; color: var(--slate); font-size: 0.88rem; }
+  .toast {
+    position: fixed; bottom: 20px; right: 20px; background: var(--navy); color: white;
+    padding: 12px 18px; border-radius: 3px; font-size: 0.85rem; box-shadow: 0 6px 20px rgba(0,0,0,0.25);
+    display: none; z-index: 100;
+  }
+</style>
+</head>
+<body>
+
+<div class="dummy-banner">⚠️ DUMMY — PORTAL LATIHAN, BUKAN SISTEM AKADEMIK SESUNGGUHNYA. SELURUH AKUN DAN DATA BERSIFAT SINTETIS. ⚠️</div>
+
+<!-- LOGIN SCREEN -->
+<div id="loginScreen">
+  <div class="login-card">
+    <div class="crest">UCN</div>
+    <h1>Universitas Cendekia Nusantara</h1>
+    <div class="sub">Portal Akademik (Latihan) — masuk dengan akun demo</div>
+
+    <div class="field">
+      <label for="loginUser">Akun demo</label>
+      <select id="loginUser"></select>
+    </div>
+    <div class="field">
+      <label for="loginPass">Kata sandi demo</label>
+      <input type="password" id="loginPass" value="demo123">
+    </div>
+    <button class="btn btn-primary" onclick="doLogin()">Masuk</button>
+    <div class="error-msg" id="loginError">Kata sandi salah. Gunakan "demo123" untuk semua akun demo.</div>
+    <div class="hint">Semua akun demo memakai kata sandi <b>demo123</b>. Data dan nama pada akun ini seluruhnya sintetis, dibuat untuk latihan.</div>
+  </div>
+</div>
+
+<!-- APP SCREEN -->
+<div id="appScreen">
+  <div class="shell">
+    <div class="sidebar">
+      <div class="brand">
+        <div class="crest-sm">UCN</div>
+        <h2 id="sbName">—</h2>
+        <div class="role-badge" id="sbRole">—</div>
+      </div>
+      <nav id="sbNav"></nav>
+      <div class="logout"><button class="btn btn-outline" onclick="doLogout()">Keluar</button></div>
+    </div>
+    <div class="main" id="mainContent"></div>
+  </div>
+</div>
+
+<div class="toast" id="toast"></div>
+
+<script>
+/* ============ DATA SINTETIS + PENYIMPANAN LOKAL ============
+   Seluruh data portal ini disimpan di localStorage browser (tidak ada
+   server/database sungguhan). Ini portal latihan client-side murni. */
+
+const STORE_KEY = "portal-kampus-ucn-v1";
+
+function seedData() {
+  return {
+    users: [
+      { id: "admin01", nama: "Admin Portal (sintetis)", role: "admin" },
+      { id: "dosen01", nama: "Dr. Siti Humaira, M.Kom. (sintetis)", role: "dosen" },
+      { id: "dosen02", nama: "Dr. Bambang Wirawan, M.T. (sintetis)", role: "dosen" },
+      { id: "mhs01", nama: "Budi Santoso (sintetis)", role: "mahasiswa", nim: "SIN-00123" },
+      { id: "mhs02", nama: "Ayu Lestari (sintetis)", role: "mahasiswa", nim: "SIN-00124" }
+    ],
+    courses: [
+      { id: "c1", nama: "Keamanan Sistem Informasi", dosenId: "dosen01" },
+      { id: "c2", nama: "Basis Data Lanjut", dosenId: "dosen02" }
+    ],
+    enrollments: [
+      { mhsId: "mhs01", courseId: "c1" },
+      { mhsId: "mhs01", courseId: "c2" },
+      { mhsId: "mhs02", courseId: "c1" }
+    ],
+    grades: [
+      { mhsId: "mhs01", courseId: "c1", nilai: "A-" }
+    ],
+    submissions: [
+      { id: "s1", mhsId: "mhs01", courseId: "c1", judul: "Laporan Praktikum P05 (contoh)", waktu: "2026-10-01T09:00:00Z" }
+    ],
+    posts: [
+      { id: "p1", courseId: "c1", penulisId: "dosen01", teks: "Selamat datang di forum diskusi mata kuliah ini. Silakan ajukan pertanyaan di sini.", waktu: "2026-09-28T08:00:00Z" }
+    ]
+  };
+}
+
+function loadDB() {
+  const raw = localStorage.getItem(STORE_KEY);
+  if (!raw) {
+    const fresh = seedData();
+    localStorage.setItem(STORE_KEY, JSON.stringify(fresh));
+    return fresh;
+  }
+  try { return JSON.parse(raw); } catch (e) { const fresh = seedData(); localStorage.setItem(STORE_KEY, JSON.stringify(fresh)); return fresh; }
+}
+function saveDB(db) { localStorage.setItem(STORE_KEY, JSON.stringify(db)); }
+
+let db = loadDB();
+let currentUser = null;
+let activePage = null;
+
+function findUser(id) { return db.users.find(u => u.id === id); }
+function findCourse(id) { return db.courses.find(c => c.id === id); }
+
+function showToast(msg) {
+  const t = document.getElementById('toast');
+  t.textContent = msg;
+  t.style.display = 'block';
+  setTimeout(() => { t.style.display = 'none'; }, 2200);
+}
+
+/* ============ LOGIN ============ */
+
+function populateLoginDropdown() {
+  const sel = document.getElementById('loginUser');
+  sel.innerHTML = db.users.map(u => `<option value="${u.id}">${u.nama} — ${u.role}</option>`).join('');
+}
+populateLoginDropdown();
+
+/* KERENTANAN SENGAJA (percobaan sandi tanpa pembatasan): tidak ada
+   penghitung percobaan gagal, tidak ada lockout, tidak ada jeda --
+   fungsi ini bisa dipanggil berulang kali tanpa batas dari console
+   browser untuk brute-force kata sandi. */
+function doLogin() {
+  const id = document.getElementById('loginUser').value;
+  const pass = document.getElementById('loginPass').value;
+  const err = document.getElementById('loginError');
+  if (pass !== 'demo123') { err.style.display = 'block'; return; }
+  err.style.display = 'none';
+  currentUser = findUser(id);
+  document.getElementById('loginScreen').style.display = 'none';
+  document.getElementById('appScreen').style.display = 'block';
+  renderShell();
+}
+
+/* KERENTANAN SENGAJA (eskalasi hak akses): peran (role) pengguna hanya
+   disimpan dan diperiksa di sisi klien (variabel currentUser.role dan
+   data di localStorage), tanpa verifikasi di server manapun. Siapa pun
+   dapat membuka console browser dan menjalankan baris berikut untuk
+   menaikkan hak aksesnya sendiri menjadi admin tanpa otorisasi apapun:
+     currentUser.role = 'admin'; renderShell();
+   Atau mengedit localStorage["portal-kampus-ucn-v1"] secara langsung. */
+
+function doLogout() {
+  currentUser = null;
+  document.getElementById('appScreen').style.display = 'none';
+  document.getElementById('loginScreen').style.display = 'flex';
+}
+
+/* ============ SHELL / NAVIGASI ============ */
+
+const NAV_BY_ROLE = {
+  mahasiswa: [
+    { key: 'nilai', label: 'Nilai Saya' },
+    { key: 'tugas', label: 'Unggah Tugas' },
+    { key: 'diskusi', label: 'Forum Diskusi' }
+  ],
+  dosen: [
+    { key: 'beri-nilai', label: 'Beri Nilai' },
+    { key: 'tugas-masuk', label: 'Tugas Masuk' },
+    { key: 'diskusi', label: 'Forum Diskusi' }
+  ],
+  admin: [
+    { key: 'akun', label: 'Kelola Akun' },
+    { key: 'matkul', label: 'Kelola Mata Kuliah' }
+  ]
+};
+
+function renderShell() {
+  document.getElementById('sbName').textContent = currentUser.nama;
+  document.getElementById('sbRole').textContent = currentUser.role;
+  const nav = NAV_BY_ROLE[currentUser.role];
+  const navEl = document.getElementById('sbNav');
+  navEl.innerHTML = nav.map(item =>
+    `<a data-key="${item.key}" onclick="goTo('${item.key}')">${item.label}</a>`
+  ).join('');
+  goTo(nav[0].key);
+}
+
+function goTo(key) {
+  activePage = key;
+  document.querySelectorAll('#sbNav a').forEach(a => a.classList.toggle('active', a.dataset.key === key));
+  const renderers = {
+    'nilai': renderNilaiSaya,
+    'tugas': renderUnggahTugas,
+    'diskusi': renderDiskusi,
+    'beri-nilai': renderBeriNilai,
+    'tugas-masuk': renderTugasMasuk,
+    'akun': renderKelolaAkun,
+    'matkul': renderKelolaMatkul
+  };
+  renderers[key]();
+}
+
+/* ============ MAHASISWA: NILAI SAYA ============ */
+
+function renderNilaiSaya() {
+  /* KERENTANAN SENGAJA (IDOR / broken access control): jika URL memuat
+     ?nim=SIN-xxxxx, halaman menampilkan nilai NIM tersebut TANPA memeriksa
+     apakah NIM itu benar-benar milik currentUser yang sedang login. Objek
+     (data nilai mahasiswa lain) diambil hanya berdasarkan ID yang valid,
+     bukan berdasarkan keputusan otorisasi -- lookup disalahartikan sebagai izin. */
+  const params = new URLSearchParams(window.location.search);
+  const targetNim = params.get('nim');
+  let viewUser = currentUser;
+  let viewingOther = false;
+  if (targetNim) {
+    const found = db.users.find(u => u.nim === targetNim);
+    if (found) { viewUser = found; viewingOther = (found.id !== currentUser.id); }
+  }
+
+  const myCourses = db.enrollments.filter(e => e.mhsId === viewUser.id).map(e => findCourse(e.courseId));
+  const rows = myCourses.map(c => {
+    const g = db.grades.find(x => x.mhsId === viewUser.id && x.courseId === c.id);
+    const dosen = findUser(c.dosenId);
+    return `<tr>
+      <td>${c.nama}</td>
+      <td>${dosen.nama}</td>
+      <td>${g ? `<span class="nilai-badge ada">${g.nilai}</span>` : `<span class="nilai-badge kosong">Belum dinilai</span>`}</td>
+    </tr>`;
+  }).join('');
+
+  document.getElementById('mainContent').innerHTML = `
+    <div class="page-head"><h2>Nilai Saya</h2><p>Nilai akhir untuk setiap mata kuliah yang Anda ambil.</p>
+    ${viewingOther ? `<p style="color:var(--warn);font-weight:700;">⚠ Anda sedang melihat data milik ${viewUser.nama} (${viewUser.nim}), bukan akun Anda sendiri -- ini adalah kerentanan IDOR yang sengaja ditanam untuk latihan.</p>` : ''}
+    </div>
+    <table>
+      <thead><tr><th>Mata kuliah</th><th>Dosen</th><th>Nilai</th></tr></thead>
+      <tbody>${rows || '<tr><td colspan="3" class="empty-state">Belum terdaftar di mata kuliah manapun.</td></tr>'}</tbody>
+    </table>
+    <p style="font-size:0.76rem;color:var(--slate);margin-top:10px;">Coba: tambahkan <code>?nim=SIN-00124</code> di akhir URL untuk melihat nilai mahasiswa lain tanpa izin.</p>
+  `;
+}
+
+/* ============ MAHASISWA: UNGGAH TUGAS ============ */
+
+function renderUnggahTugas() {
+  const myCourses = db.enrollments.filter(e => e.mhsId === currentUser.id).map(e => findCourse(e.courseId));
+  const myTugas = db.submissions.filter(s => s.mhsId === currentUser.id);
+
+  document.getElementById('mainContent').innerHTML = `
+    <div class="page-head"><h2>Unggah Tugas</h2><p>Simulasi unggah tugas — berkas disimpan sebagai catatan nama berkas di portal ini (tidak benar-benar diunggah ke server).</p></div>
+    <div class="panel">
+      <h3>Formulir unggah</h3>
+      <div class="form-row">
+        <label>Mata kuliah</label>
+        <select id="tugasCourse">${myCourses.map(c => `<option value="${c.id}">${c.nama}</option>`).join('')}</select>
+      </div>
+      <div class="form-row">
+        <label>Judul tugas</label>
+        <input type="text" id="tugasJudul" placeholder="mis. Laporan Praktikum Minggu 7">
+      </div>
+      <button class="btn btn-gold" onclick="submitTugas()">Unggah</button>
+    </div>
+    <div class="panel">
+      <h3>Riwayat unggahan saya</h3>
+      <table>
+        <thead><tr><th>Judul</th><th>Mata kuliah</th><th>Waktu</th></tr></thead>
+        <tbody>${myTugas.map(s => `<tr><td>${s.judul}</td><td>${findCourse(s.courseId).nama}</td><td>${new Date(s.waktu).toLocaleString('id-ID')}</td></tr>`).join('') || '<tr><td colspan="3" class="empty-state">Belum ada tugas diunggah.</td></tr>'}</tbody>
+      </table>
+    </div>
+  `;
+}
+
+function submitTugas() {
+  const courseId = document.getElementById('tugasCourse').value;
+  const judul = document.getElementById('tugasJudul').value.trim();
+  if (!judul) { showToast('Judul tugas tidak boleh kosong.'); return; }
+  db.submissions.push({ id: 's' + Date.now(), mhsId: currentUser.id, courseId, judul, waktu: new Date().toISOString() });
+  saveDB(db);
+  showToast('Tugas berhasil diunggah (simulasi).');
+  renderUnggahTugas();
+}
+
+/* ============ FORUM DISKUSI (mahasiswa & dosen) ============ */
+
+function renderDiskusi() {
+  const myCourseIds = currentUser.role === 'mahasiswa'
+    ? db.enrollments.filter(e => e.mhsId === currentUser.id).map(e => e.courseId)
+    : db.courses.filter(c => c.dosenId === currentUser.id).map(c => c.id);
+  const myCourses = myCourseIds.map(findCourse);
+
+  const html = myCourses.map(c => {
+    const posts = db.posts.filter(p => p.courseId === c.id).sort((a,b) => new Date(b.waktu) - new Date(a.waktu));
+    return `
+      <div class="panel">
+        <h3>${c.nama}</h3>
+        <div class="form-row">
+          <textarea id="diskusiInput-${c.id}" placeholder="Tulis pertanyaan atau komentar..."></textarea>
+        </div>
+        <button class="btn btn-gold" onclick="kirimPost('${c.id}')">Kirim</button>
+        <div style="margin-top:16px;">
+          ${/* KERENTANAN SENGAJA (Stored XSS): p.teks dirender langsung via innerHTML
+             tanpa encoding. Payload HTML/skrip yang dikirim satu pengguna akan
+             tersimpan di localStorage dan dieksekusi di browser SETIAP pengguna lain
+             yang membuka thread ini -- bukan hanya di browser pengirim. */ ''}
+          ${posts.map(p => `<div class="post"><div class="meta"><b>${findUser(p.penulisId).nama}</b> · ${new Date(p.waktu).toLocaleString('id-ID')}</div><div class="body">${p.teks}</div></div>`).join('') || '<div class="empty-state">Belum ada diskusi di mata kuliah ini.</div>'}
+        </div>
+      </div>
+    `;
+  }).join('');
+
+  document.getElementById('mainContent').innerHTML = `
+    <div class="page-head"><h2>Forum Diskusi</h2><p>Diskusi per mata kuliah, terlihat oleh dosen dan mahasiswa terdaftar.</p></div>
+    ${html || '<div class="empty-state">Belum terhubung ke mata kuliah manapun.</div>'}
+  `;
+}
+
+function kirimPost(courseId) {
+  const el = document.getElementById('diskusiInput-' + courseId);
+  const teks = el.value.trim();
+  if (!teks) return;
+  db.posts.push({ id: 'p' + Date.now(), courseId, penulisId: currentUser.id, teks, waktu: new Date().toISOString() });
+  saveDB(db);
+  renderDiskusi();
+}
+
+function escapeHtml(s) {
+  return s.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;");
+}
+
+/* ============ DOSEN: BERI NILAI ============ */
+
+function renderBeriNilai() {
+  const myCourses = db.courses.filter(c => c.dosenId === currentUser.id);
+
+  const rows = myCourses.flatMap(c => {
+    const enrolled = db.enrollments.filter(e => e.courseId === c.id);
+    return enrolled.map(e => {
+      const mhs = findUser(e.mhsId);
+      const g = db.grades.find(x => x.mhsId === mhs.id && x.courseId === c.id);
+      return `<tr>
+        <td>${mhs.nama}<br><span style="color:var(--slate);font-size:0.78rem;">${mhs.nim}</span></td>
+        <td>${c.nama}</td>
+        <td><input type="text" style="width:70px;" id="nilaiInput-${mhs.id}-${c.id}" value="${g ? g.nilai : ''}" placeholder="—"></td>
+        <td><button class="btn btn-outline" onclick="simpanNilai('${mhs.id}','${c.id}')">Simpan</button></td>
+      </tr>`;
+    });
+  }).join('');
+
+  document.getElementById('mainContent').innerHTML = `
+    <div class="page-head"><h2>Beri Nilai</h2><p>Masukkan atau ubah nilai akhir mahasiswa pada mata kuliah yang Anda ampu.</p></div>
+    <table>
+      <thead><tr><th>Mahasiswa</th><th>Mata kuliah</th><th>Nilai</th><th></th></tr></thead>
+      <tbody>${rows || '<tr><td colspan="4" class="empty-state">Belum ada mahasiswa terdaftar di mata kuliah Anda.</td></tr>'}</tbody>
+    </table>
+  `;
+}
+
+function simpanNilai(mhsId, courseId) {
+  const val = document.getElementById(`nilaiInput-${mhsId}-${courseId}`).value.trim();
+  if (!val) { showToast('Nilai tidak boleh kosong.'); return; }
+  let g = db.grades.find(x => x.mhsId === mhsId && x.courseId === courseId);
+  if (g) g.nilai = val; else db.grades.push({ mhsId, courseId, nilai: val });
+  saveDB(db);
+  showToast('Nilai disimpan.');
+  renderBeriNilai();
+}
+
+/* ============ DOSEN: TUGAS MASUK ============ */
+
+function renderTugasMasuk() {
+  const myCourseIds = db.courses.filter(c => c.dosenId === currentUser.id).map(c => c.id);
+  const masuk = db.submissions.filter(s => myCourseIds.includes(s.courseId));
+
+  const rows = masuk.map(s => `<tr>
+    <td>${findUser(s.mhsId).nama}</td>
+    <td>${findCourse(s.courseId).nama}</td>
+    <td>${s.judul}</td>
+    <td>${new Date(s.waktu).toLocaleString('id-ID')}</td>
+  </tr>`).join('');
+
+  document.getElementById('mainContent').innerHTML = `
+    <div class="page-head"><h2>Tugas Masuk</h2><p>Daftar tugas yang diunggah mahasiswa pada mata kuliah yang Anda ampu.</p></div>
+    <table>
+      <thead><tr><th>Mahasiswa</th><th>Mata kuliah</th><th>Judul tugas</th><th>Waktu unggah</th></tr></thead>
+      <tbody>${rows || '<tr><td colspan="4" class="empty-state">Belum ada tugas masuk.</td></tr>'}</tbody>
+    </table>
+  `;
+}
+
+/* ============ ADMIN: KELOLA AKUN ============ */
+
+function renderKelolaAkun() {
+  const rows = db.users.map(u => `<tr>
+    <td>${u.nama}</td>
+    <td style="text-transform:capitalize;">${u.role}</td>
+    <td>${u.nim || '—'}</td>
+    <td>${u.id === currentUser.id ? '<span style="color:var(--slate);font-size:0.8rem;">(Anda)</span>' : `<button class="btn btn-outline" onclick="hapusAkun('${u.id}')">Hapus</button>`}</td>
+  </tr>`).join('');
+
+  document.getElementById('mainContent').innerHTML = `
+    <div class="page-head"><h2>Kelola Akun</h2><p>Tambah atau hapus akun sintetis mahasiswa dan dosen.</p></div>
+    <div class="panel">
+      <h3>Tambah akun baru</h3>
+      <div class="grid-2">
+        <div class="form-row"><label>Nama (sintetis)</label><input type="text" id="akunNama" placeholder="mis. Dewi Anggraini (sintetis)"></div>
+        <div class="form-row"><label>Peran</label>
+          <select id="akunRole"><option value="mahasiswa">Mahasiswa</option><option value="dosen">Dosen</option></select>
+        </div>
+      </div>
+      <button class="btn btn-gold" onclick="tambahAkun()">Tambah Akun</button>
+    </div>
+    <table>
+      <thead><tr><th>Nama</th><th>Peran</th><th>NIM</th><th></th></tr></thead>
+      <tbody>${rows}</tbody>
+    </table>
+  `;
+}
+
+function tambahAkun() {
+  const nama = document.getElementById('akunNama').value.trim();
+  const role = document.getElementById('akunRole').value;
+  if (!nama) { showToast('Nama akun tidak boleh kosong.'); return; }
+  const id = (role === 'mahasiswa' ? 'mhs' : 'dosen') + Date.now();
+  const newUser = { id, nama: nama.includes('(sintetis)') ? nama : nama + ' (sintetis)', role };
+  if (role === 'mahasiswa') newUser.nim = 'SIN-' + Math.floor(10000 + Math.random() * 89999);
+  db.users.push(newUser);
+  saveDB(db);
+  showToast('Akun ditambahkan.');
+  renderKelolaAkun();
+}
+
+function hapusAkun(id) {
+  db.users = db.users.filter(u => u.id !== id);
+  saveDB(db);
+  showToast('Akun dihapus.');
+  renderKelolaAkun();
+}
+
+/* ============ ADMIN: KELOLA MATA KULIAH ============ */
+
+function renderKelolaMatkul() {
+  const dosenList = db.users.filter(u => u.role === 'dosen');
+  const rows = db.courses.map(c => `<tr>
+    <td>${c.nama}</td>
+    <td>${findUser(c.dosenId) ? findUser(c.dosenId).nama : '—'}</td>
+    <td>${db.enrollments.filter(e => e.courseId === c.id).length} mahasiswa</td>
+  </tr>`).join('');
+
+  document.getElementById('mainContent').innerHTML = `
+    <div class="page-head"><h2>Kelola Mata Kuliah</h2><p>Daftar mata kuliah beserta pengampu dan jumlah peserta.</p></div>
+    <div class="panel">
+      <h3>Tambah mata kuliah</h3>
+      <div class="grid-2">
+        <div class="form-row"><label>Nama mata kuliah</label><input type="text" id="matkulNama" placeholder="mis. Jaringan Komputer"></div>
+        <div class="form-row"><label>Dosen pengampu</label>
+          <select id="matkulDosen">${dosenList.map(d => `<option value="${d.id}">${d.nama}</option>`).join('')}</select>
+        </div>
+      </div>
+      <button class="btn btn-gold" onclick="tambahMatkul()">Tambah</button>
+    </div>
+    <table>
+      <thead><tr><th>Mata kuliah</th><th>Dosen</th><th>Peserta</th></tr></thead>
+      <tbody>${rows}</tbody>
+    </table>
+  `;
+}
+
+function tambahMatkul() {
+  const nama = document.getElementById('matkulNama').value.trim();
+  const dosenId = document.getElementById('matkulDosen').value;
+  if (!nama) { showToast('Nama mata kuliah tidak boleh kosong.'); return; }
+  db.courses.push({ id: 'c' + Date.now(), nama, dosenId });
+  saveDB(db);
+  showToast('Mata kuliah ditambahkan.');
+  renderKelolaMatkul();
+}
+</script>
+
+</body>
+</html>
